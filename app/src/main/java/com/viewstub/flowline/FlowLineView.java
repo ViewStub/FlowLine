@@ -50,12 +50,12 @@ public class FlowLineView extends View {
         mPaint.setAntiAlias(true);
         mPaint.setStyle(Paint.Style.STROKE);
 
-        mBitmapPaint.setStrokeWidth(5);
+        mBitmapPaint.setStrokeWidth(3);
         mBitmapPaint.setAntiAlias(true);
         mBitmapPaint.setStyle(Paint.Style.STROKE);
 
-        makePolygon(new RectF(50, 50, 450, 450), mPath);
-        makePolygon(new RectF(75, 75, 425, 425), mInnerPath);
+        makeRoundPolygon(new RectF(50, 50, 450, 450), mPath);
+        makeRoundPolygon(new RectF(75, 75, 425, 425), mInnerPath);
         mBitmap = Bitmap.createBitmap(500, 500, Bitmap.Config.ARGB_8888);
         mBitmapCanvas = new Canvas(mBitmap);
     }
@@ -75,7 +75,7 @@ public class FlowLineView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        canvas.drawColor(Color.BLACK);
+//        canvas.drawColor(Color.BLACK);
 
         if (mBitmap != null) {
             canvas.drawBitmap(mBitmap, 0, 0, null);
@@ -89,27 +89,70 @@ public class FlowLineView extends View {
 
     }
 
+    final float roundWidth = 10;
+    float Gen3 = 1.7320508076f * roundWidth;
+    int rA = 1; //暂时不能变
+
+    private void makeRoundPolygon(RectF rect, Path path) {
+        float r = (rect.right - rect.left) / 2;
+        float mX = (rect.right + rect.left) / 2;
+        float my = (rect.top + rect.bottom) / 2;
+        for (int i = 0; i < 6; i++) {
+            float alpha = Double.valueOf(((2f / 6) * i - 0.5f*rA) * Math.PI).floatValue();//-0.5f 逆时针旋转90°
+            float nextX = mX + Double.valueOf(r * Math.cos(alpha)).floatValue();
+            float nextY = my + Double.valueOf(r * Math.sin(alpha)).floatValue();
+            //TODO 非标准角度 ERROR
+            int XR = (i  + rA -1) % 6;
+            switch (XR) {
+                case 0:
+                    path.moveTo(nextX - Gen3, nextY + roundWidth);
+                    path.quadTo(nextX, nextY, nextX + Gen3, nextY + roundWidth);
+                    break;
+                case 1:
+                    path.lineTo(nextX - Gen3, nextY - roundWidth);
+                    path.quadTo(nextX, nextY, nextX, nextY + roundWidth * 2);
+                    break;
+                case 2:
+                    path.lineTo(nextX, nextY - roundWidth * 2);
+                    path.quadTo(nextX, nextY, nextX - Gen3, nextY + roundWidth);
+                    break;
+                case 3:
+                    path.lineTo(nextX + Gen3, nextY - roundWidth);
+                    path.quadTo(nextX, nextY, nextX - Gen3, nextY - roundWidth);
+                    break;
+                case 4:
+                    path.lineTo(nextX + Gen3, nextY + roundWidth);
+                    path.quadTo(nextX, nextY, nextX, nextY - roundWidth * 2);
+                    break;
+                case 5:
+                    path.lineTo(nextX, nextY + roundWidth * 2);
+                    path.quadTo(nextX, nextY, nextX + Gen3, nextY - roundWidth);
+                    break;
+            }
+        }
+        path.close();
+    }
+
     private void makePolygon(RectF rect, Path path) {
         float r = (rect.right - rect.left) / 2;
         float mX = (rect.right + rect.left) / 2;
         float my = (rect.top + rect.bottom) / 2;
         for (int i = 0; i <= 6; i++) {
-            float alpha = Double.valueOf(((2f / 6) * i - 0.5f) * Math.PI).floatValue();
-
+            float alpha = Double.valueOf(((2f / 6) * i - 0.5f*rA) * Math.PI).floatValue();
             float nextX = mX + Double.valueOf(r * Math.cos(alpha)).floatValue();
             float nextY = my + Double.valueOf(r * Math.sin(alpha)).floatValue();
-
             if (i == 0) {
                 path.moveTo(nextX, nextY);
             } else {
                 path.lineTo(nextX, nextY);
+                path.moveTo(nextX, nextY);
             }
         }
     }
 
     public void start() {
         ValueAnimator mAnimator = ValueAnimator.ofInt(360, 0);
-        mAnimator.setDuration(20 * 360);
+        mAnimator.setDuration(10 * 360);
         mAnimator.setRepeatCount(ValueAnimator.INFINITE);
         mAnimator.setInterpolator(new TimeInterpolator() {
 
