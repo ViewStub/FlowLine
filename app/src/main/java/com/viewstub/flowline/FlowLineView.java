@@ -94,7 +94,7 @@ public class FlowLineView extends View {
         float mX = (rect.right + rect.left) / 2;
         float my = (rect.top + rect.bottom) / 2;
         for (int i = 0; i <= 6; i++) {
-            float alpha = Double.valueOf(((2f / 6) * i) * Math.PI).floatValue();
+            float alpha = Double.valueOf(((2f / 6) * i - 0.5f) * Math.PI).floatValue();
 
             float nextX = mX + Double.valueOf(r * Math.cos(alpha)).floatValue();
             float nextY = my + Double.valueOf(r * Math.sin(alpha)).floatValue();
